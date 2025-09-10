@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Shop - POS</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .products, .cart {
+      width: 48%;
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .product {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px #0056b3;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(2px);
+      box-shadow: 0 2px #0056b3;
+      background: #0056b3;
+    }
+
+    button:active {
+      transform: translateY(4px);
+      box-shadow: 0 1px #0056b3;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding: 6px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .cart-controls {
+      display: flex;
+      align-items: center;
+    }
+
+    .cart-controls button {
+      margin-left: 5px;
+      margin-right: 5px;
+      padding: 2px 6px;
+      font-size: 14px;
+    }
+
+    .total {
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 15px;
+      text-align: right;
+    }
+
+    .clear-btn {
+      margin-top: 10px;
+      width: 100%;
+      background: #dc3545;
+    }
+
+    .clear-btn:hover {
+      background: #a71d2a;
+    }
+
+    .checkout-form {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      width: 48%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .checkout-form h3 {
+      margin-bottom: 10px;
+    }
+
+    .checkout-form input, .checkout-form select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .checkout-form button {
+      width: 100%;
+      background: #28a745;
+    }
+
+    .checkout-form button:hover {
+      background: #1e7e34;
+    }
+
+    #order-summary {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e9ffe9;
+      border: 1px solid #28a745;
+      border-radius: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Kathu online shop- Nuu Branch</h1>
+
+<div class="container">
+  <!-- Products Section -->
+  <div class="products">
+    <h2>Products</h2>
+    <div class="product">
+      <span>Apple - KSh 30</span>
+      <button onclick="addToCart('Apple', 30)">Add</button>
+    </div>
+    <div class="product">
+      <span>Banana - KSh 15</span>
+      <button onclick="addToCart('Banana', 15)">Add</button>
+    </div>
+    <div class="product">
+      <span>Milk - KSh 60</span>
+      <button onclick="addToCart('Milk', 60)">Add</button>
+    </div>
+    <div class="product">
+      <span>Bread - KSh 50</span>
+      <button onclick="addToCart('Bread', 50)">Add</button>
+    </div>
+    <div class="product">
+      <span>Afya - Ksh 90</span>
+      <button onclick="addToCart('Afya', 90)">Add</button>
+    </div>
+  </div>
+
+  <!-- Cart Section -->
+  <div class="cart">
+    <h2>Cart</h2>
+    <div id="cart-items"></div>
+    <div class="total">Total: KSh <span id="total">0</span></div>
+    <button class="clear-btn" onclick="clearCart()">Clear Cart</button>
+  </div>
+</div>
+
+<!-- Checkout Form -->
+<div class="checkout-form">
+  <h3>Checkout</h3>
+  <input type="text" id="customer-name" placeholder="First Name">
+  <input type="text" id="customer-name" placeholder="Last Name">
+  <input type="email" id="customer-email" placeholder="Email Address">
+  <input type="text" id="customer-address" placeholder="Delivery Address">
+  
+  <label for="payment-method">Payment Method:</label>
+  <select id="payment-method">
+    <option value="">-- Select Payment --</option>
+    <option value="mpesa">M-Pesa</option>
+    <option value="paypal">PayPal</option>
+    <option value="card">Credit/Debit Card</option>
+    <option value="cash">cash on delivery</option>
+  </select>
+
+  <button onclick="checkout()">Proceed to Payment</button>
+</div>
+
+<!-- order summary -->
+<div id="order-summary"></div>
+
+<script>
+let cart = [];
+
+function addToCart(name, price) {
+  let item = cart.find(p => p.name === name);
+  if (item) {
+    item.quantity++;
+  } else {
+    cart.push({ name, price, quantity: 1 });
+  }
+  updateCart();
+}
+
+function removeFromCart(name) {
+  cart = cart.filter(p => p.name !== name);
+  updateCart();
+}
+
+function increaseQuantity(name) {
+  let item = cart.find(p => p.name === name);
+  if (item) {
+    item.quantity++;
+    updateCart();
+  }
+}
+
+function decreaseQuantity(name) {
+  let item = cart.find(p => p.name === name);
+  if (item) {
+    if (item.quantity > 1) {
+      item.quantity--;
+    } else {
+      removeFromCart(name);
+      return;
+    }
+    updateCart();
+  }
+}
+
+function clearCart() {
+  cart = [];
+  updateCart();
+}
+
+function updateCart() {
+  const cartItemsDiv = document.getElementById("cart-items");
+  const totalSpan = document.getElementById("total");
+  
+  cartItemsDiv.innerHTML = "";
+  let total = 0;
+
+  cart.forEach(product => {
+    total += product.price * product.quantity;
+    const div = document.createElement("div");
+    div.classList.add("cart-item");
+    div.innerHTML = `
+      <span>${product.name} (x${product.quantity}) - KSh ${(product.price * product.quantity).toFixed(2)}</span>
+      <span class="cart-controls">
+        <button onclick="decreaseQuantity('${product.name}')">-</button>
+        <button onclick="increaseQuantity('${product.name}')">+</button>
+        <button onclick="removeFromCart('${product.name}')">Remove</button>
+      </span>
+    `;
+    cartItemsDiv.appendChild(div);
+  });
+
+  totalSpan.textContent = total.toFixed(2);
+}
+
+function checkout() {
+  const name = document.getElementById("customer-name").value;
+  const email = document.getElementById("customer-email").value;
+  const address = document.getElementById("customer-address").value;
+  const payment = document.getElementById("payment-method").value;
+
+  if (!name || !email || !address || cart.length === 0 || !payment) {
+    alert("Please fill all details, select payment, and add items to cart.");
+    return;
+  }
+
+  let summary = `<h3>Order Summary</h3>`;
+  summary += `<p><b>Name:</b> ${name}</p>`;
+  summary += `<p><b>Email:</b> ${email}</p>`;
+  summary += `<p><b>Address:</b> ${address}</p>`;
+  summary += `<p><b>Payment Method:</b> ${payment.toUpperCase()}</p>`;
+  summary += `<ul>`;
+  let total = 0;
+  cart.forEach(p => {
+    summary += `<li>${p.name} (x${p.quantity}) - KSh ${(p.price * p.quantity).toFixed(2)}</li>`;
+    total += p.price * p.quantity;
+  });
+  summary += `</ul>`;
+  summary += `<p><b>Total:</b> KSh ${total.toFixed(2)}</p>`;
+  summary += `<p style="color:blue;">Redirecting to ${payment.toUpperCase()}...</p>`;
+
+  document.getElementById("order-summary").innerHTML = summary;
+  document.getElementById("order-summary").style.display = "block";
+
+  setTimeout(() => {
+    document.getElementById("order-summary").innerHTML += `<p style="color:green;font-weight:bold;">Payment Successful ✔</p>`;
+    clearCart();
+  }, 2000);
+}
+</script>
+
+</body>
+</html>
